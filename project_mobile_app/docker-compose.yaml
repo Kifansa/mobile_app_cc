@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
+    image: kifansanaufal/mobile-app-backend
     container_name: mobile_app_backend
     volumes:
       - ./backend:/var/www/html
@@ -13,11 +14,12 @@ services:
     build:
       context: .
       dockerfile: docker/frontend/Dockerfile
+    image: kifansanaufal/mobile-app-frontend
     container_name: mobile_app_frontend
     ports:
-      - "8000:80" 
+      - "8000:80"
     volumes:
-      - ./frontend:/app/src 
+      - ./frontend:/app/src
       - ./backend:/var/www/html
     depends_on:
       - backend
@@ -37,7 +39,7 @@ services:
       - db-data:/var/lib/mysql
     networks:
       - app-network
-  
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: mobile_app_pma

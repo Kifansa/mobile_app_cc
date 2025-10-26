@@ -2,12 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USER = 'kifansanaufal'
-        
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        
-        BACKEND_IMAGE_NAME = "${DOCKER_USER}/mobile-app-backend"
-        FRONTEND_IMAGE_NAME = "${DOCKER_USER}/mobile-app-frontend"
     }
 
     stages {
@@ -24,13 +19,8 @@ pipeline {
         stage('2. Build Docker Images') {
             steps {
                 script {
-                    echo "Membangun image Backend..."
-                    def backendImg = docker.build("${BACKEND_IMAGE_NAME}:${env.BUILD_NUMBER}", 
-                        "-f docker/backend/Dockerfile .")
-                    
-                    echo "Membangun image Frontend..."
-                    def frontendImg = docker.build("${FRONTEND_IMAGE_NAME}:${env.BUILD_NUMBER}",
-                        "-f docker/frontend/Dockerfile .")
+                    echo "Membangun image dari docker-compose.yaml..."
+                    bat 'docker-compose build --parallel'
                 }
             }
         }
@@ -40,14 +30,7 @@ pipeline {
                 script {
                     echo "Logging in and pushing images..."
                     docker.withRegistry("https://index.docker.io/v1/", DOCKER_CREDENTIALS_ID) {
-                        
-                        echo "Mendorong Backend image..."
-                        docker.image("${BACKEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push()
-                        docker.image("${BACKEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push("latest")
-                        
-                        echo "Mendorong Frontend image..."
-                        docker.image("${FRONTEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push()
-                        docker.image("${FRONTEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push("latest")
+                        bat 'docker-compose push'
                     }
                 }
             }
