@@ -18,19 +18,23 @@ pipeline {
         
         stage('2. Build Docker Images') {
             steps {
-                script {
-                    echo "Membangun image dari docker-compose.yaml..."
-                    sh 'docker compose build --parallel'
+                dir('project_mobile_app') {
+                    script {
+                        echo "Membangun image dari docker-compose.yaml..."
+                        sh 'docker compose build --parallel'
+                    }
                 }
             }
         }
 
         stage('3. Push to Docker Hub') {
             steps {
-                script {
-                    echo "Logging in and pushing images..."
-                    docker.withRegistry("https://index.docker.io/v1/", DOCKER_CREDENTIALS_ID) {
-                        sh 'docker compose push'
+                dir('project_mobile_app') {
+                    script {
+                        echo "Logging in and pushing images..."
+                        docker.withRegistry("https://index.docker.io/v1/", DOCKER_CREDENTIALS_ID) {
+                            sh 'docker compose push'
+                        }
                     }
                 }
             }
