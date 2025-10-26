@@ -1,12 +1,22 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_USER = 'kifansanaufal'
+        
+        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
+        
+        BACKEND_IMAGE_NAME = "${DOCKER_USER}/mobile-app-backend"
+        FRONTEND_IMAGE_NAME = "${DOCKER_USER}/mobile-app-frontend"
+    }
+
     stages {
         stage('1. Initialize') {
             steps {
                 script {
                     echo "Mulai build..."
                     cleanWs()
+                    checkout scm
                 }
             }
         }
@@ -14,20 +24,31 @@ pipeline {
         stage('2. Build Docker Images') {
             steps {
                 script {
-                    echo "Membangun image baru..."
-                    sh 'docker-compose build --no-cache'
+                    echo "Membangun image Backend..."
+                    def backendImg = docker.build("${BACKEND_IMAGE_NAME}:${env.BUILD_NUMBER}", 
+                        "-f docker/backend/Dockerfile .")
+                    
+                    echo "Membangun image Frontend..."
+                    def frontendImg = docker.build("${FRONTEND_IMAGE_NAME}:${env.BUILD_NUMBER}",
+                        "-f docker/frontend/Dockerfile .")
                 }
             }
         }
 
-        stage('3. Deploy Application') {
+        stage('3. Push to Docker Hub') {
             steps {
                 script {
-                    echo "Menghentikan container lama..."
-                    sh 'docker-compose down'
-                    
-                    echo "Menjalankan container baru..."
-                    sh 'docker-compose up -d --force-recreate'
+                    echo "Logging in and pushing images..."
+                    docker.withRegistry("https://index.docker.io/v1/", DOCKER_CREDENTIALS_ID) {
+                        
+                        echo "Mendorong Backend image..."
+                        docker.image("${BACKEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push()
+                        docker.image("${BACKEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push("latest")
+                        
+                        echo "Mendorong Frontend image..."
+                        docker.image("${FRONTEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push()
+                        docker.image("${FRONTEND_IMAGE_NAME}:${env.BUILD_NUMBER}").push("latest")
+                    }
                 }
             }
         }
@@ -36,7 +57,7 @@ pipeline {
             steps {
                 script {
                     echo "Membersihkan image Docker yang tidak terpakai..."
-                    sh 'docker image prune -f'
+                    bat 'docker image prune -f'
                 }
             }
         }
