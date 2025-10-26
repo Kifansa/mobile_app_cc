@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('1. Initialize') {
+            steps {
+                script {
+                    echo "Mulai build..."
+                    cleanWs()
+                }
+            }
+        }
+        
+        stage('2. Build Docker Images') {
+            steps {
+                script {
+                    echo "Membangun image baru..."
+                    sh 'docker-compose build --no-cache'
+                }
+            }
+        }
+
+        stage('3. Deploy Application') {
+            steps {
+                script {
+                    echo "Menghentikan container lama..."
+                    sh 'docker-compose down'
+                    
+                    echo "Menjalankan container baru..."
+                    sh 'docker-compose up -d --force-recreate'
+                }
+            }
+        }
+        
+        stage('4. Cleanup') {
+            steps {
+                script {
+                    echo "Membersihkan image Docker yang tidak terpakai..."
+                    sh 'docker image prune -f'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Build pipeline selesai.'
+        }
+    }
+}
