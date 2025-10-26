@@ -1,11 +1,14 @@
 services:
   jenkins:
-    image: jenkins/jenkins:lts-docker
+    build:
+      context: .
+      dockerfile: docker/jenkins/Dockerfile
+    
     container_name: jenkins
     privileged: true 
-    user: root
+    user: root 
     ports:
-      - "9090:8080" 
+      - "9090:8080"
       - "50000:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
