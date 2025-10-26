@@ -1,6 +1,6 @@
 services:
   jenkins:
-    image: jenkins/jenkins:lts-jdk17-docker
+    image: jenkins/jenkins:lts-jdk17
     container_name: jenkins
     privileged: true 
     user: root
